@@ -1,0 +1,23 @@
+logging {
+  level = "info"
+}
+
+local.file_match "auth" {
+  path_targets = [
+    {
+      "__path__" = "/var/log/siem/auth.jsonl",
+      "job"      = "synthetic-auth",
+    },
+  ]
+}
+
+loki.source.file "auth" {
+  targets    = local.file_match.auth.targets
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

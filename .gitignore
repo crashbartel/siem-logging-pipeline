@@ -1,0 +1,10 @@
+.env
+grafana/data/
+grafana/backups/
+loki/data/
+alloy/data/
+logs/*.jsonl
+__pycache__/
+*.py[cod]
+.DS_Store
+Thumbs.db

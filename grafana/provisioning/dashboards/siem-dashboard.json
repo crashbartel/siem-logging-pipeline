@@ -1,0 +1,342 @@
+{
+"id":  null,
+"uid":  "siem-logging-pipeline",
+"title":  "The SIEM \u0026 Logging Pipeline",
+"timezone":  "browser",
+"schemaVersion":  16,
+"version":  1,
+"refresh":  "5s",
+"panels":  [
+              {
+                "id":  1,
+                "title":  "Total Authentication Events",
+                "type":  "stat",
+                "datasource":  {
+                                  "type":  "loki",
+                                  "uid":  "P8E80F9AEF21F6940"
+                              },
+               "targets":  [
+                               {
+                                   "refId":  "A",
+                                   "expr":  "sum(count_over_time({job=\"synthetic-auth\"}[$__range])) or vector(0)",
+                                   "instant":  true,
+                                   "queryType":  "instant"
+                               }
+                           ],
+               "gridPos":  {
+                               "h":  8,
+                               "w":  6,
+                               "x":  0,
+                               "y":  0
+                           },
+               "options":  {
+                               "reduceOptions":  {
+                                                     "calcs":  [
+                                                                   "lastNotNull"
+                                                               ],
+                                                     "fields":  ""
+                                                 }
+                           }
+           },
+           {
+               "id":  2,
+               "title":  "Successful Authentications",
+               "type":  "stat",
+               "datasource":  {
+                                  "type":  "loki",
+                                  "uid":  "P8E80F9AEF21F6940"
+                              },
+               "targets":  [
+                               {
+                                   "refId":  "A",
+                                   "expr":  "sum(count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"success\" [$__range])) or vector(0)",
+                                   "instant":  true,
+                                   "queryType":  "instant"
+                               }
+                           ],
+               "gridPos":  {
+                               "h":  8,
+                               "w":  6,
+                               "x":  6,
+                               "y":  0
+                           },
+               "options":  {
+                               "reduceOptions":  {
+                                                     "calcs":  [
+                                                                 "lastNotNull"
+                                                               ],
+                                                     "fields":  ""
+                                                 }
+                           }
+           },
+           {
+               "id":  3,
+               "title":  "Failed Authentications",
+               "type":  "stat",
+               "datasource":  {
+                                  "type":  "loki",
+                                  "uid":  "P8E80F9AEF21F6940"
+                              },
+               "targets":  [
+                               {
+                                   "refId":  "A",
+                                   "expr":  "sum(count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [$__range])) or vector(0)",
+                                   "instant":  true,
+                                   "queryType":  "instant"
+                               }
+                                   ],
+               "gridPos":  {
+                             "h":  8,                                       "w":  6,
+                             "x":  12,
+                             "y":  0
+                                   },
+                       "options":  {
+                                       "reduceOptions":  {
+                                                             "calcs":  [
+                                                                           "lastNotNull"
+                                                                       ],
+                                                             "fields":  ""
+                                                         }
+                                   }
+                   },
+                   {
+                       "id":  4,
+                       "title":  "Successes and Failures Over Time",
+                       "type":  "timeseries",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum(count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"success\" [$__interval])) or vector(0)",
+                                           "legendFormat":  "Success",
+                                           "queryType":  "range"
+                                       },
+                                       {
+                                           "refId":  "B",
+                                           "expr":  "sum(count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [$__interval])) or vector(0)",
+                                           "legendFormat":  "Failure",
+                                           "queryType":  "range"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  12,
+                                       "w":  18,
+                                       "x":  0,
+                                       "y":  8
+                                   }
+                   },
+                   {
+                       "id":  5,
+                       "title":  "Top Source IPs producing failures",
+                       "type":  "table",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "topk(5, sum by (ip_address) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [$__range])))",
+                                           "instant":  true,
+                                           "queryType":  "instant"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  6,
+                                       "x":  0,
+                                       "y": 20
+                                   },
+                       "options":  {
+                                       "showHeader":  true,
+                                       "sortBy":  [
+                                                      {
+                                                          "desc":  true,
+                                                          "displayName":  "Value"
+                                                      }
+                                                  ]
+                                   }
+                   },
+                   {
+                       "id":  6,
+                       "title":  "Raw Authentication Logs",
+                       "type":  "logs",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "{job=\"synthetic-auth\"} | json",
+                                           "queryType":  "range"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y": 30
+                                   }
+                   },
+                   {
+                       "id":  7,
+                       "title":  "Failed Logins by Source IP",
+                       "type":  "table",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "topk(10, sum by (ip_address) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [$__range])))",
+                                           "instant":  true,
+                                           "queryType":  "instant"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y": 40
+                                   },
+                       "options":  {
+                                       "showHeader":  true,
+                                       "sortBy":  [
+                                                      {
+                                                          "desc":  true,
+                                                          "displayName":  "Value"
+                                                      }
+                                                  ]
+                                   }
+                   },
+                   {
+                       "id":  8,
+                       "title":  "Failed Logins by Username",
+                       "type":  "table",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "topk(10, sum by (username) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [$__range])))",
+                                           "instant":  true,
+                                           "queryType":  "instant"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y": 40
+                                   },
+                       "options":  {
+                                       "showHeader":  true,
+                                       "sortBy":  [
+                                                      {
+                                                          "desc":  true,
+                                                          "displayName":  "Value"
+                                                      }
+                                                  ]
+                                   }
+                   },
+                   {
+                       "id":  9,
+                       "title":  "Possible Brute-Force Sources",
+                       "type":  "table",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "topk(10, sum by (ip_address) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | scenario=\"brute-force\" [$__range])))",
+                                           "instant":  true,
+                                           "queryType":  "instant"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  12,
+                                       "x":  0,
+                                       "y": 50
+                                   },
+                       "options":  {
+                                       "showHeader":  true,
+                                       "sortBy":  [
+                                                      {
+                                                          "desc":  true,
+                                                          "displayName":  "Value"
+                                                      }
+                                                  ]
+                                   }
+                   },
+                   {
+                       "id":  10,
+                       "title":  "Authentication Events by Scenario",
+                       "type":  "piechart",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "sum by (scenario) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" [$__range]))",
+                                           "instant":  true,
+                                           "queryType":  "instant"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  12,
+                                       "x":  12,
+                                       "y": 50
+                                   },
+                       "options":  {
+                                       "legend":  {
+                                                      "showLegend":  true
+                                                  },
+                                       "pieType":  "pie"
+                                   }
+                   },
+                   {
+                       "id":  11,
+                       "title":  "Raw Security Events",
+                       "type":  "logs",
+                       "datasource":  {
+                                          "type":  "loki",
+                                          "uid":  "P8E80F9AEF21F6940"
+                                      },
+                       "targets":  [
+                                       {
+                                           "refId":  "A",
+                                           "expr":  "{job=\"synthetic-auth\"} | json | __error__=\"\"",
+                                           "queryType":  "range"
+                                       }
+                                   ],
+                       "gridPos":  {
+                                       "h":  10,
+                                       "w":  24,
+                                       "x":  0,
+                                       "y": 60
+                                   }
+                   }
+               ],
+    "templating":  {
+                       "list":  [
+
+                                ]
+                   },
+    "time":  {
+                 "from":  "now-24h",
+                 "to":  "now"
+             }
+}

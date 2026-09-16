@@ -1,0 +1,175 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "siem-logging-pipeline",
+    "title": "The SIEM & Logging Pipeline",
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "5s",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Authentication Events",
+        "type": "stat",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"synthetic-auth\"}[24h])",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 0
+        },
+        "options": {
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Successful Authentications",
+        "type": "stat",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"synthetic-auth\", outcome=\"success\"}[24h])",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 0
+        },
+        "options": {
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Failed Authentications",
+        "type": "stat",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "count_over_time({job=\"synthetic-auth\", outcome=\"failure\"}[24h])",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 8,
+          "w": 6,
+          "x": 12,
+          "y": 0
+        },
+        "options": {
+          "reduceOptions": {
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Successes and Failures Over Time",
+        "type": "timeseries",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{job=\"synthetic-auth\", outcome=\"success\"}",
+            "legendFormat": "Success"
+          },
+          {
+            "refId": "B",
+            "expr": "{job=\"synthetic-auth\", outcome=\"failure\"}",
+            "legendFormat": "Failure"
+          }
+        ],
+        "gridPos": {
+          "h": 12,
+          "w": 18,
+          "x": 0,
+          "y": 8
+        }
+      },
+      {
+        "id": 5,
+        "title": "Top Source IPs producing failures",
+        "type": "table",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "topk(5, count by (ip_address) ({job=\"synthetic-auth\", outcome=\"failure\"}))",
+            "instant": true
+          }
+        ],
+        "gridPos": {
+          "h": 10,
+          "w": 6,
+          "x": 0,
+          "y": 20
+        },
+        "options": {
+          "showHeader": true,
+          "sortBy": [
+            {
+              "desc": true,
+              "displayName": "Value"
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Raw Authentication Logs",
+        "type": "logs",
+        "datasource": "Loki",
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{job=\"synthetic-auth\"} | logfmt"
+          }
+        ],
+        "gridPos": {
+          "h": 10,
+          "w": 24,
+          "x": 0,
+          "y": 30
+        }
+      }
+    ],
+    "templating": {
+      "list": []
+    },
+    "time": {
+      "from": "now-24h",
+      "to": "now"
+    }
+  },
+  "inputs": [
+    {
+      "name": "DS_LOKI",
+      "label": "Loki",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "loki",
+      "pluginName": "Loki"
+    }
+  ]
+}

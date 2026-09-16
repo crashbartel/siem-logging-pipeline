@@ -1,0 +1,64 @@
+
+
+services:
+  # Generator service that creates synthetic authentication events
+  generator:
+    build: .
+    container_name: siem-generator
+    restart: "no"
+    volumes:
+      - ./scripts:/app/scripts:ro
+      - ./logs:/var/log/siem
+    command: python /app/scripts/generator.py
+  # Loki log aggregation and storage
+  loki:
+    image: grafana/loki:3.1.0
+    container_name: siem-loki
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9090:3100"
+    command: -config.file=/etc/loki/config.yml
+    volumes:
+      - type: bind
+        source: ./loki/config.yml
+        target: /etc/loki/config.yml
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./loki/data:/tmp/loki
+  # Grafana dashboard for visualization
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: siem-grafana
+    restart: unless-stopped
+    depends_on:
+      - loki
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./grafana/data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    networks:
+      - default
+
+  # Alloy observability agent
+  alloy:
+    image: grafana/alloy:v1.0.0
+    container_name: siem-alloy
+    restart: unless-stopped
+    command:
+      - run
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - type: bind
+        source: ./alloy/config.alloy
+        target: /etc/alloy/config.alloy
+        read_only: true
+        bind:
+          create_host_path: false
+      - ./logs:/var/log/siem:ro
+      - ./alloy/data:/var/lib/alloy/data
