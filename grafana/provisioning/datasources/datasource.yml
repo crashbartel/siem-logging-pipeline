@@ -1,6 +1,7 @@
 apiVersion: 1
 
 datasources:
+  # Default Loki data source for SIEM pipeline dashboard
   - name: Loki
     type: loki
     access: proxy

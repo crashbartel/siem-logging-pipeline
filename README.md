@@ -1,88 +1,167 @@
-# SIEM Logging Pipeline
+# The SIEM & Logging Pipeline
 
-This project implements a complete SIEM logging pipeline that demonstrates real-time log analysis and threat detection using Docker and various open-source tools.
+An educational, Docker-based security monitoring lab that generates synthetic authentication events, collects them with Grafana Alloy, stores them in Grafana Loki, and visualizes detection results in Grafana.
 
-## Components
+The project demonstrates an end-to-end logging pipeline and a simple brute-force detection use case without requiring access to real authentication data.
 
-1. **Log Generator** (`scripts/generator.py`) - Generates synthetic authentication events
-2. **Logstash** - Processes and parses logs for SIEM analysis
-3. **Elasticsearch** - Stores and indexes log data
-4. **Kibana** - Visualizes security analytics
-5. **Grafana** - Provides dashboard monitoring and real-time alerting
+## Architecture
 
-## Quick Start
-
-1. Build and start the system:
-   ```
-   docker-compose up -d
-   ```
-
-2. Generate normal authentication events:
-   ```
-   docker exec siem-pipeline_generator_1 python3 /scripts/generator.py
-   ```
-
-3. Generate brute-force attack simulation:
-   ```
-   docker exec siem-pipeline_generator_1 python3 /scripts/generator.py --mode brute-force
-   ```
-
-## Monitoring
-
-- **Kibana**: Access at `http://localhost:5601`
-- **Grafana**: Access at `http://localhost:3000` (default credentials: admin/admin)
-- **Elasticsearch**: Access at `http://localhost:9200`
-
-## Features Implemented
-
-### Milestone 1 & 2
-- Real-time log ingestion and analysis
-- Authentication event monitoring
-- Dashboard visualization
-- Log parsing and indexing
-
-### Milestone 3
-- Brute-force attack detection and alerting
-- Additional dashboard panels for security analytics
-- Enhanced event logging and schema support
-
-## Log Generator Usage
-
-The generator supports multiple modes:
-
-- **Normal mode** (default): Generates typical authentication events
-- **Brute-force mode**: Generates a scenario with multiple failed login attempts from the same source
-
-Use `--mode` argument to specify behavior:
-```
-python3 /scripts/generator.py --mode normal
-python3 /scripts/generator.py --mode brute-force
+```text
+Python generator -> shared JSONL log -> Grafana Alloy -> Grafana Loki -> Grafana
 ```
 
-## Security Dashboard
+| Component | Purpose |
+| --- | --- |
+| Python generator | Produces normal and simulated brute-force authentication events |
+| Grafana Alloy `v1.0.0` | Tails the shared log file and forwards entries to Loki |
+| Grafana Loki `3.1.0` | Stores and queries log data |
+| Grafana `11.4.0` | Displays the provisioned SIEM dashboard |
 
-The Grafana dashboard contains several key panels for security monitoring:
+## What the lab demonstrates
 
-1. **Total Authentication Events** - Overview of all events
-2. **Successful/Failed Authentications** - Statistics on auth outcomes
-3. **Successes and Failures Over Time** - Timeline view of authentication trends  
-4. **Top Source IPs producing failures** - Identifies problematic IP addresses
-5. **Raw Authentication Logs** - Full log data (for troubleshooting)
-6. **Failed Logins by Source IP** - Detailed breakdown of failed attempts by source
-7. **Failed Logins by Username** - Tracks which accounts are targeted
-8. **Possible Brute-Force Sources** - Identifies potential brute-force attacks
-9. **Authentication Events by Scenario** - Pie chart showing normal vs brute-force events
-10. **Raw Security Events** - Complete log stream for in-depth analysis
+- Docker Compose service orchestration and networking
+- Structured JSON security-event generation
+- File-based log collection with Grafana Alloy
+- Log storage and LogQL queries with Loki
+- Automatically provisioned Grafana data source and dashboard
+- Brute-force detection based on repeated authentication failures
+- Normal and attack-simulation test modes
 
-## Implementation Details
+Each generated event contains a timestamp, unique event ID, username, RFC 5737 documentation IP address, authentication outcome, event type, and scenario label.
 
-### Architecture Diagram
+## Prerequisites
 
+- Docker Desktop with Docker Compose
+- Git
+- PowerShell
+
+## Quick start
+
+Run these commands from the repository root.
+
+1. Create a local `.env` file containing a Grafana administrator password. Save the file as UTF-8, not UTF-16.
+
+   ```text
+   GRAFANA_ADMIN_PASSWORD=replace-with-a-strong-local-password
+   ```
+
+   The `.env` file is ignored by Git and must not be committed.
+
+2. Build and start the lab.
+
+   ```powershell
+   docker compose --env-file .env up -d --build
+   docker compose --env-file .env ps -a
+   ```
+
+3. Wait approximately 15 seconds for Loki to become ready, then verify the services.
+
+   ```powershell
+   Invoke-RestMethod "http://localhost:9090/ready" -TimeoutSec 10
+   Invoke-RestMethod "http://localhost:3001/api/health" -TimeoutSec 10 | ConvertTo-Json
+   ```
+
+4. Open [Grafana](http://localhost:3001), sign in as `admin` using the password in `.env`, and open **The SIEM & Logging Pipeline** dashboard.
+
+## Generate test data
+
+Generate five normal authentication events:
+
+```powershell
+docker compose --env-file .env run --rm generator `
+  python /app/scripts/generator.py --mode normal
 ```
-[Generator] → [Logstash] → [Elasticsearch] 
-         ← [Kibana] ← [Grafana]
+
+Generate a simulated brute-force scenario:
+
+```powershell
+docker compose --env-file .env run --rm generator `
+  python /app/scripts/generator.py --mode brute-force
 ```
 
-This pipeline supports real-time ingestion of synthetic authentication events and provides visualization capabilities to detect security threats like brute-force attacks.
+The generator is a one-shot container. An `Exited (0)` status after it finishes is expected and indicates success.
 
-The system is designed for continuous operation with auto-restart policies for all components, providing a production-like environment for SIEM demonstration.
+## Dashboard
+
+The provisioned dashboard contains 11 panels:
+
+1. Total Authentication Events
+2. Successful Authentications
+3. Failed Authentications
+4. Successes and Failures Over Time
+5. Top Source IPs Producing Failures
+6. Raw Authentication Logs
+7. Failed Logins by Source IP
+8. Failed Logins by Username
+9. Possible Brute-Force Sources
+10. Authentication Events by Scenario
+11. Raw Security Events
+
+The **Possible Brute-Force Sources** panel identifies a source IP that produces at least five failed authentication events within a five-minute window. The included attack simulation generates enough failures from one documentation IP to trigger this detection.
+
+## Project structure
+
+```text
+.
+|-- alloy/
+|   `-- config.alloy
+|-- grafana/
+|   `-- provisioning/
+|       |-- dashboards/
+|       |   |-- dashboard-provisioning.yaml
+|       |   `-- siem-dashboard.json
+|       `-- datasources/
+|           `-- datasource.yml
+|-- loki/
+|   `-- config.yml
+|-- scripts/
+|   `-- generator.py
+|-- .gitignore
+|-- Dockerfile
+|-- docker-compose.yml
+`-- README.md
+```
+
+Runtime data, logs, credentials, and local service state are excluded through `.gitignore`.
+
+## Useful operations
+
+View container status:
+
+```powershell
+docker compose --env-file .env ps -a
+```
+
+Inspect service logs:
+
+```powershell
+docker logs --tail 100 siem-generator
+docker logs --tail 100 siem-alloy
+docker logs --tail 100 siem-loki
+docker logs --tail 100 siem-grafana
+```
+
+Stop the lab while preserving local data:
+
+```powershell
+docker compose --env-file .env down
+```
+
+## Troubleshooting
+
+- **Loki initially reports that the ingester is not ready:** wait 15 seconds and retry the readiness request.
+- **Grafana cannot reach Loki:** confirm both containers are attached to the same Compose network and that the provisioned URL is `http://loki:3100`.
+- **No recent dashboard data:** select a wider time range, run the generator again, and refresh the dashboard.
+- **Compose reports invalid characters in `.env`:** recreate the file as UTF-8 without a byte-order mark.
+- **Generator shows `Exited (0)`:** this is normal because the generator finishes after writing its test events.
+
+## Security and scope
+
+This repository is an educational home lab, not a production SIEM. It uses synthetic data and local filesystem storage. It does not implement production-grade authentication, TLS, high availability, secrets management, alert routing, backups, or retention policies. Keep all ports bound to localhost unless you intentionally add appropriate network protections.
+
+## Resume talking points
+
+- Built a four-service, containerized log pipeline using Python, Grafana Alloy, Loki, and Grafana.
+- Created structured authentication telemetry and repeatable normal/brute-force simulations.
+- Implemented LogQL-based analysis and a provisioned 11-panel dashboard for security monitoring.
+- Diagnosed container mounts, service networking, configuration syntax, and end-to-end ingestion failures.
