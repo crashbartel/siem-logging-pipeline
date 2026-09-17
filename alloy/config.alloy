@@ -13,6 +13,18 @@ local.file_match "auth" {
 
 loki.source.file "auth" {
   targets    = local.file_match.auth.targets
+  forward_to = [loki.process.auth.receiver]
+}
+loki.process "auth" {
+  stage.json {
+    expressions = {
+      event_timestamp = "timestamp",
+    }
+  }
+  stage.timestamp {
+    source = "event_timestamp"
+    format = "RFC3339"
+  }
   forward_to = [loki.write.local.receiver]
 }
 
@@ -21,3 +33,4 @@ loki.write "local" {
     url = "http://loki:3100/loki/api/v1/push"
   }
 }
+

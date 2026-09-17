@@ -13,7 +13,7 @@
                 "type":  "stat",
                 "datasource":  {
                                   "type":  "loki",
-                                  "uid":  "P8E80F9AEF21F6940"
+                                  "uid":  "loki-siem-datasource"
                               },
                "targets":  [
                                {
@@ -44,7 +44,7 @@
                "type":  "stat",
                "datasource":  {
                                   "type":  "loki",
-                                  "uid":  "P8E80F9AEF21F6940"
+                                  "uid":  "loki-siem-datasource"
                               },
                "targets":  [
                                {
@@ -75,7 +75,7 @@
                "type":  "stat",
                "datasource":  {
                                   "type":  "loki",
-                                  "uid":  "P8E80F9AEF21F6940"
+                                  "uid":  "loki-siem-datasource"
                               },
                "targets":  [
                                {
@@ -105,7 +105,7 @@
                        "type":  "timeseries",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -134,7 +134,7 @@
                        "type":  "table",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -166,7 +166,7 @@
                        "type":  "logs",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -188,7 +188,7 @@
                        "type":  "table",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -220,7 +220,7 @@
                        "type":  "table",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -252,12 +252,12 @@
                        "type":  "table",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
                                            "refId":  "A",
-                                           "expr":  "topk(10, sum by (ip_address) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | scenario=\"brute-force\" [$__range])))",
+                                           "expr": "sum by (ip_address) (count_over_time({job=\"synthetic-auth\"} | json | __error__=\"\" | outcome=\"failure\" [5m])) >= 5",
                                            "instant":  true,
                                            "queryType":  "instant"
                                        }
@@ -284,7 +284,7 @@
                        "type":  "piechart",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
@@ -313,7 +313,7 @@
                        "type":  "logs",
                        "datasource":  {
                                           "type":  "loki",
-                                          "uid":  "P8E80F9AEF21F6940"
+                                          "uid":  "loki-siem-datasource"
                                       },
                        "targets":  [
                                        {
